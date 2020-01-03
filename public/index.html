@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>抽奖系统</title>
+    <style type="text/css">
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #canvas {
+            margin: 0;
+            padding: 0;
+
+            border: 0;
+            display: block;
+            outline: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script>
+    var canvas = document.getElementById("canvas"),
+        canvasWidth = window.innerWidth,
+        canvasHeight = window.innerHeight,
+        gl = canvas.getContext("2d"),
+        viewWidth = 1920,
+        viewScale = 1,
+        numbersPadding = 20,
+        numberTextureWidth = 120,
+        numberTextureHeight = 168,
+        numbersImage = new Image(),
+        numbersSprite = [],
+        numbersDrawClip = [690, 600, 540, 168],
+        backgroundImage = new Image(),
+        backgroundSprite = null,
+        buttonImage = new Image(),
+        buttonSprite = null,
+        columnsCount = 4,
+        numbersPositionColumns = [],
+        loadCount = 0,
+        state = "create",
+        numbersTarget = [0, 0, 0, 0],
+        numbersTargetCount = 0,
+        minSpeed = 5;
+
+    function resize() {
+        canvasWidth = window.innerWidth;
+        canvasHeight = window.innerHeight;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        viewScale = canvasWidth / viewWidth;
+    }
+
+    window.onresize = resize;
+    resize();
+
+    function startRunning() {
+        if (state !== "idle") return;
+        state = "running";
+
+        var n = Math.round(Math.random() * 9999).toString();
+        for (var l = n.length; l < 4; l++) {
+            n = "0" + n;
+        }
+
+        for (var i = 0; i < 4; i++) {
+            numbersTarget[i] = n.charCodeAt(i) - 48;
+        }
+        numbersTargetCount = 0;
+
+        for (i = 0; i < numbersPositionColumns.length; i++) {
+            numbersPositionColumns[i].maxSpeed = Math.round(Math.random() * 30) + 20;
+        }
+    }
+
+    function stopRunning() {
+        if (state !== "running") return;
+        state = "stopping";
+    }
+
+    function onKeyPress(evt) {
+        if (evt.code !== "Space") return;
+
+        if (state === "idle") {
+            startRunning();
+        } else if (state === "running") {
+            stopRunning();
+        }
+    }
+
+    window.onkeyup = onKeyPress;
+
+    function Sprite(image, sx, sy, sw, sh) {
+        this.image = image;
+        this.sx = sx;
+        this.sy = sy;
+        this.sw = sw;
+        this.sh = sh;
+
+        this.draw = function (x, y) {
+            gl.drawImage(this.image,
+                this.sx, this.sy, this.sw, this.sh,
+                x * viewScale, y * viewScale,
+                this.sw * viewScale, this.sh * viewScale);
+        };
+    }
+
+    function updateLoadState() {
+        loadCount++;
+        if (loadCount < 3) return;
+
+        create();
+    }
+
+    function create() {
+        gl.imageSmoothingEnabled = true;
+        gl.imageSmoothingQuality = "high";
+
+        for (var i = 0; i < 10; i++) {
+            numbersSprite[i] = new Sprite(numbersImage,
+                // x, y
+                numberTextureWidth * i, 0,
+                // width, height
+                numberTextureWidth, numberTextureHeight);
+        }
+
+        backgroundSprite = new Sprite(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height);
+        buttonSprite = new Sprite(buttonImage, 0, 0, buttonImage.width, buttonImage.height);
+
+        for (var c = 0; c < columnsCount; c++) {
+            var rows = [];
+            numbersPositionColumns[c] = {
+                speed: 0,
+                maxSpeed: 0,
+                rows: rows
+            };
+            for (var r = 0; r < 3; r++) {
+                rows[r] = {
+                    y: (r - 1) * numberTextureHeight,
+                    number: r - 1 < 0 ? 10 + r - 1 : r - 1
+                };
+            }
+        }
+
+        state = "idle";
+
+        mainLoop();
+    }
+
+    function update() {
+        for (var c = 0; c < columnsCount; c++) {
+            var column = numbersPositionColumns[c];
+            var speed = column.speed;
+            if (state === "running") {
+                if (speed < column.maxSpeed) {
+                    speed += column.maxSpeed * 0.01;
+                    if (speed > column.maxSpeed) speed = column.maxSpeed;
+                    column.speed = speed;
+                }
+            } else if (state === "stopping") {
+                if (speed > minSpeed) {
+                    speed -= speed * 0.05;
+                    if (speed < minSpeed) speed = minSpeed;
+                    column.speed = speed;
+                }
+            }
+
+            var rows = column.rows;
+            var offset = false;
+            var r;
+            for (r = 0; r < rows.length; r++) {
+                rows[r].y += speed;
+                if (rows[r].y > numberTextureHeight) {
+                    offset = true;
+                }
+            }
+
+            if (!offset) continue;
+
+            for (r = 0; r < rows.length; r++) {
+                rows[r].y -= numberTextureHeight;
+                rows[r].number--;
+                if (rows[r].number < 0) {
+                    rows[r].number = 9;
+                }
+            }
+
+            if (state === "stopping" && rows[1].number === numbersTarget[c]) {
+                column.speed = 0;
+                for (r = 0; r < rows.length; r++) {
+                    rows[r].y = Math.round(rows[r].y / numberTextureHeight) * numberTextureHeight;
+                }
+
+                numbersTargetCount++;
+                if (numbersTargetCount === 4) {
+                    state = "idle";
+                }
+            }
+        }
+    }
+
+    function draw() {
+        gl.save();
+        gl.fillRect(0, 0, canvasWidth, canvasHeight);
+        backgroundSprite.draw(0, 0);
+        buttonSprite.draw(viewWidth / 2 - buttonSprite.sw / 2, 820);
+
+        gl.beginPath();
+        gl.rect(numbersDrawClip[0] * viewScale, numbersDrawClip[1] * viewScale,
+            numbersDrawClip[2] * viewScale, numbersDrawClip[3] * viewScale);
+        gl.clip();
+
+        // draw all columns
+        for (var c = 0; c < columnsCount; c++) {
+            var column = numbersPositionColumns[c];
+            var rows = column.rows;
+            for (var r = 0; r < rows.length; r++) {
+                var x = c * (numberTextureWidth + numbersPadding) + numbersDrawClip[0];
+                var y = rows[r].y + numbersDrawClip[1];
+                var spr = numbersSprite[rows[r].number];
+                spr.draw(x, y);
+            }
+        }
+
+        gl.restore();
+    }
+
+    function mainLoop() {
+        requestAnimationFrame(mainLoop);
+        update();
+        draw();
+    }
+
+    numbersImage.onload = function () {
+        updateLoadState();
+    };
+    numbersImage.src = "numbers.png";
+
+    backgroundImage.onload = function () {
+        updateLoadState();
+    };
+    backgroundImage.src = "bg.jpg";
+
+    buttonImage.onload = function () {
+        updateLoadState();
+    };
+    buttonImage.src = "button.jpg";
+</script>
+</html>
