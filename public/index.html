@@ -54,7 +54,9 @@
         state = "create",
         numbersTarget = [0, 0, 0, 0],
         numbersTargetCount = 0,
-        minSpeed = 15;
+        minSpeed = 15,
+        storage = window.localStorage,
+        existsNumbers = [];
 
     function resize() {
         canvasWidth = window.innerWidth;
@@ -71,12 +73,27 @@
         if (state !== "idle") return;
         state = "running";
 
-        var n = Math.round(Math.random() * 9999).toString();
-        for (var l = n.length; l < 4; l++) {
-            n = "0" + n;
+        var n, i;
+
+        for (; ;) {
+            n = Math.round(Math.random() * 9999).toString();
+            for (var l = n.length; l < 4; l++) {
+                n = "0" + n;
+            }
+
+            for (i = 0; i < existsNumbers.length; i++) {
+                if (existsNumbers[i] === n) {
+                    continue;
+                }
+            }
+
+            break;
         }
 
-        for (var i = 0; i < 4; i++) {
+        existsNumbers.push(n);
+        storage.setItem("numbers", JSON.stringify(existsNumbers));
+
+        for (i = 0; i < 4; i++) {
             numbersTarget[i] = n.charCodeAt(i) - 48;
         }
         numbersTargetCount = 0;
@@ -92,12 +109,19 @@
     }
 
     function onKeyPress(evt) {
-        if (evt.code !== "Space") return;
-
-        if (state === "idle") {
-            startRunning();
-        } else if (state === "running") {
-            stopRunning();
+        if (evt.code === "Space") {
+            if (state === "idle") {
+                startRunning();
+            } else if (state === "running") {
+                stopRunning();
+            }
+        } else if (evt.code === "KeyC") {
+            if (window.confirm("清空本地数据?")) {
+                storage.clear();
+                existsNumbers.length = 0;
+            }
+        } else if (evt.code === "KeyP") {
+            window.alert(JSON.stringify(existsNumbers));
         }
     }
 
@@ -126,6 +150,18 @@
     }
 
     function create() {
+        var numbers = storage.getItem("numbers");
+        try {
+            numbers = JSON.parse(numbers);
+        } catch (e) {
+        }
+        if (!Array.isArray(numbers)) {
+            storage.setItem("numbers", existsNumbers);
+        } else {
+            existsNumbers = numbers;
+        }
+        console.log("existsNumbers:", existsNumbers);
+
         gl.imageSmoothingEnabled = true;
         gl.imageSmoothingQuality = "high";
 
@@ -166,7 +202,7 @@
             var speed = column.speed;
             if (state === "running") {
                 if (speed < column.maxSpeed) {
-                    speed += column.maxSpeed * 0.01;
+                    speed += column.maxSpeed * 0.05;
                     if (speed > column.maxSpeed) speed = column.maxSpeed;
                     column.speed = speed;
                 }
@@ -198,7 +234,7 @@
                 }
             }
 
-            if (state === "stopping" && rows[1].number === numbersTarget[c]) {
+            if (state === "stopping" && rows[2].number === numbersTarget[c]) {
                 column.speed = 0;
                 for (r = 0; r < rows.length; r++) {
                     rows[r].y = Math.round(rows[r].y / numberTextureHeight) * numberTextureHeight;
