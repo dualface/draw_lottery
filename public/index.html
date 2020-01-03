@@ -54,7 +54,7 @@
         state = "create",
         numbersTarget = [0, 0, 0, 0],
         numbersTargetCount = 0,
-        minSpeed = 5;
+        minSpeed = 15;
 
     function resize() {
         canvasWidth = window.innerWidth;
@@ -216,7 +216,7 @@
         gl.save();
         gl.fillRect(0, 0, canvasWidth, canvasHeight);
         backgroundSprite.draw(0, 0);
-        buttonSprite.draw(viewWidth / 2 - buttonSprite.sw / 2, 820);
+        // buttonSprite.draw(viewWidth / 2 - buttonSprite.sw / 2, 820);
 
         gl.beginPath();
         gl.rect(numbersDrawClip[0] * viewScale, numbersDrawClip[1] * viewScale,
