@@ -33,30 +33,31 @@
 </body>
 <script>
     var canvas = document.getElementById("canvas"),
-        canvasWidth = window.innerWidth,
-        canvasHeight = window.innerHeight,
-        gl = canvas.getContext("2d"),
-        viewWidth = 1920,
-        viewScale = 1,
-        numbersPadding = 20,
-        numberTextureWidth = 120,
-        numberTextureHeight = 168,
-        numbersImage = new Image(),
-        numbersSprite = [],
-        numbersDrawClip = [690, 600, 540, 168],
-        backgroundImage = new Image(),
-        backgroundSprite = null,
-        buttonImage = new Image(),
-        buttonSprite = null,
-        columnsCount = 4,
-        numbersPositionColumns = [],
-        loadCount = 0,
-        state = "create",
-        numbersTarget = [0, 0, 0, 0],
-        numbersTargetCount = 0,
-        minSpeed = 15,
-        storage = window.localStorage,
-        existsNumbers = [];
+            canvasWidth = window.innerWidth,
+            canvasHeight = window.innerHeight,
+            gl = canvas.getContext("2d"),
+            viewWidth = 1920,
+            viewScale = 1,
+            numbersPadding = 20,
+            numberTextureWidth = 120,
+            numberTextureHeight = 168,
+            numbersImage = new Image(),
+            numbersSprite = [],
+            numbersDrawClip = [690, 600, 540, 168],
+            backgroundImage = new Image(),
+            backgroundSprite = null,
+            buttonImage = new Image(),
+            buttonSprite = null,
+            columnsCount = 4,
+            numbersPositionColumns = [],
+            loadCount = 0,
+            state = "create",
+            numbersTarget = [],
+            numbersTargetCount = 0,
+            minSpeed = 15,
+            storage = window.localStorage,
+            existsNumbers = [],
+            maxNumber = 99999;
 
     function resize() {
         canvasWidth = window.innerWidth;
@@ -76,8 +77,8 @@
         var n, i;
 
         for (; ;) {
-            n = Math.round(Math.random() * 9999).toString();
-            for (var l = n.length; l < 4; l++) {
+            n = Math.round(Math.random() * maxNumber).toString();
+            for (var l = n.length; l < columnsCount; l++) {
                 n = "0" + n;
             }
 
@@ -93,7 +94,7 @@
         existsNumbers.push(n);
         storage.setItem("numbers", JSON.stringify(existsNumbers));
 
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < columnsCount; i++) {
             numbersTarget[i] = n.charCodeAt(i) - 48;
         }
         numbersTargetCount = 0;
@@ -136,9 +137,9 @@
 
         this.draw = function (x, y) {
             gl.drawImage(this.image,
-                this.sx, this.sy, this.sw, this.sh,
-                x * viewScale, y * viewScale,
-                this.sw * viewScale, this.sh * viewScale);
+                    this.sx, this.sy, this.sw, this.sh,
+                    x * viewScale, y * viewScale,
+                    this.sw * viewScale, this.sh * viewScale);
         };
     }
 
@@ -166,10 +167,10 @@
 
         for (var i = 0; i < 10; i++) {
             numbersSprite[i] = new Sprite(numbersImage,
-                // x, y
-                numberTextureWidth * i, 0,
-                // width, height
-                numberTextureWidth, numberTextureHeight);
+                    // x, y
+                    numberTextureWidth * i, 0,
+                    // width, height
+                    numberTextureWidth, numberTextureHeight);
         }
 
         backgroundSprite = new Sprite(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height);
@@ -189,6 +190,8 @@
                 };
             }
         }
+
+        numbersPadding = (540 - numberTextureWidth * columnsCount) / (columnsCount - 1);
 
         state = "idle";
 
@@ -240,7 +243,7 @@
                 }
 
                 numbersTargetCount++;
-                if (numbersTargetCount === 4) {
+                if (numbersTargetCount === columnsCount) {
                     state = "idle";
                 }
             }
@@ -255,7 +258,7 @@
 
         gl.beginPath();
         gl.rect(numbersDrawClip[0] * viewScale, numbersDrawClip[1] * viewScale,
-            numbersDrawClip[2] * viewScale, numbersDrawClip[3] * viewScale);
+                numbersDrawClip[2] * viewScale, numbersDrawClip[3] * viewScale);
         gl.clip();
 
         // draw all columns
