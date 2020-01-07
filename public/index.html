@@ -33,31 +33,30 @@
 </body>
 <script>
     var canvas = document.getElementById("canvas"),
-            canvasWidth = window.innerWidth,
-            canvasHeight = window.innerHeight,
-            gl = canvas.getContext("2d"),
-            viewWidth = 1920,
-            viewScale = 1,
-            numbersPadding = 20,
-            numberTextureWidth = 120,
-            numberTextureHeight = 168,
-            numbersImage = new Image(),
-            numbersSprite = [],
-            numbersDrawClip = [690, 600, 540, 168],
-            backgroundImage = new Image(),
-            backgroundSprite = null,
-            buttonImage = new Image(),
-            buttonSprite = null,
-            columnsCount = 4,
-            numbersPositionColumns = [],
-            loadCount = 0,
-            state = "create",
-            numbersTarget = [],
-            numbersTargetCount = 0,
-            minSpeed = 15,
-            storage = window.localStorage,
-            existsNumbers = [],
-            maxNumber = 99999;
+        canvasWidth = window.innerWidth,
+        canvasHeight = window.innerHeight,
+        gl = canvas.getContext("2d"),
+        viewWidth = 1920,
+        viewScale = 1,
+        numbersPadding = 20,
+        numberTextureWidth = 120,
+        numberTextureHeight = 168,
+        numbersImage = new Image(),
+        numbersSprite = [],
+        numbersDrawClip = [690, 600, 540, 168],
+        currentBackground = 3,
+        backgroundImages = [new Image(), new Image(), new Image()],
+        backgroundSprites = [],
+        columnsCount = 5,
+        numbersPositionColumns = [],
+        loadCount = 0,
+        state = "create",
+        numbersTarget = [],
+        numbersTargetCount = 0,
+        minSpeed = 15,
+        storage = window.localStorage,
+        existsNumbers = [],
+        maxNumber = 99999;
 
     function resize() {
         canvasWidth = window.innerWidth;
@@ -109,6 +108,23 @@
         state = "stopping";
     }
 
+    function initNumbers() {
+        for (var c = 0; c < columnsCount; c++) {
+            var rows = [];
+            numbersPositionColumns[c] = {
+                speed: 0,
+                maxSpeed: 0,
+                rows: rows
+            };
+            for (var r = 0; r < 3; r++) {
+                rows[r] = {
+                    y: (r - 1) * numberTextureHeight,
+                    number: r - 1 < 0 ? 10 + r - 1 : r - 1
+                };
+            }
+        }
+    }
+
     function onKeyPress(evt) {
         if (evt.code === "Space") {
             if (state === "idle") {
@@ -121,6 +137,15 @@
                 storage.clear();
                 existsNumbers.length = 0;
             }
+        } else if (evt.code === "Digit1") {
+            currentBackground = 1;
+            initNumbers();
+        } else if (evt.code === "Digit2") {
+            currentBackground = 2;
+            initNumbers();
+        } else if (evt.code === "Digit3") {
+            currentBackground = 3;
+            initNumbers();
         } else if (evt.code === "KeyP") {
             window.alert(JSON.stringify(existsNumbers));
         }
@@ -137,15 +162,15 @@
 
         this.draw = function (x, y) {
             gl.drawImage(this.image,
-                    this.sx, this.sy, this.sw, this.sh,
-                    x * viewScale, y * viewScale,
-                    this.sw * viewScale, this.sh * viewScale);
+                this.sx, this.sy, this.sw, this.sh,
+                x * viewScale, y * viewScale,
+                this.sw * viewScale, this.sh * viewScale);
         };
     }
 
     function updateLoadState() {
         loadCount++;
-        if (loadCount < 3) return;
+        if (loadCount < 4) return;
 
         create();
     }
@@ -167,29 +192,16 @@
 
         for (var i = 0; i < 10; i++) {
             numbersSprite[i] = new Sprite(numbersImage,
-                    // x, y
-                    numberTextureWidth * i, 0,
-                    // width, height
-                    numberTextureWidth, numberTextureHeight);
+                // x, y
+                numberTextureWidth * i, 0,
+                // width, height
+                numberTextureWidth, numberTextureHeight);
         }
 
-        backgroundSprite = new Sprite(backgroundImage, 0, 0, backgroundImage.width, backgroundImage.height);
-        buttonSprite = new Sprite(buttonImage, 0, 0, buttonImage.width, buttonImage.height);
-
-        for (var c = 0; c < columnsCount; c++) {
-            var rows = [];
-            numbersPositionColumns[c] = {
-                speed: 0,
-                maxSpeed: 0,
-                rows: rows
-            };
-            for (var r = 0; r < 3; r++) {
-                rows[r] = {
-                    y: (r - 1) * numberTextureHeight,
-                    number: r - 1 < 0 ? 10 + r - 1 : r - 1
-                };
-            }
+        for (i = 0; i < 3; i++) {
+            backgroundSprites[i] = new Sprite(backgroundImages[i], 0, 0, backgroundImages[i].width, backgroundImages[i].height);
         }
+        initNumbers();
 
         numbersPadding = (540 - numberTextureWidth * columnsCount) / (columnsCount - 1);
 
@@ -253,12 +265,11 @@
     function draw() {
         gl.save();
         gl.fillRect(0, 0, canvasWidth, canvasHeight);
-        backgroundSprite.draw(0, 0);
-        // buttonSprite.draw(viewWidth / 2 - buttonSprite.sw / 2, 820);
+        backgroundSprites[currentBackground - 1].draw(0, 0);
 
         gl.beginPath();
         gl.rect(numbersDrawClip[0] * viewScale, numbersDrawClip[1] * viewScale,
-                numbersDrawClip[2] * viewScale, numbersDrawClip[3] * viewScale);
+            numbersDrawClip[2] * viewScale, numbersDrawClip[3] * viewScale);
         gl.clip();
 
         // draw all columns
@@ -287,14 +298,11 @@
     };
     numbersImage.src = "numbers.png";
 
-    backgroundImage.onload = function () {
-        updateLoadState();
-    };
-    backgroundImage.src = "bg.jpg";
-
-    buttonImage.onload = function () {
-        updateLoadState();
-    };
-    buttonImage.src = "button.jpg";
+    for (var i = 1; i <= 3; i++) {
+        backgroundImages[i - 1].onload = function () {
+            updateLoadState();
+        };
+        backgroundImages[i - 1].src = "bg" + i.toString() + ".jpg";
+    }
 </script>
 </html>
