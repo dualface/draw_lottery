@@ -43,11 +43,11 @@
         numberTextureHeight = 168,
         numbersImage = new Image(),
         numbersSprite = [],
-        numbersDrawClip = [1026, 510, 540, 168],
+        numbersDrawClip = [1076, 600, 440, 168],
         currentBackground = 0,
         backgroundImages = [new Image(), new Image(), new Image(), new Image()],
         backgroundSprites = [],
-        columnsCount = 5,
+        columnsCount = 4,
         numbersPositionColumns = [],
         loadCount = 0,
         state = "create",
@@ -56,7 +56,7 @@
         minSpeed = 15,
         storage = window.localStorage,
         existsNumbers = [],
-        maxNumber = 99999;
+        maxNumber = 9999;
 
     function resize() {
         canvasWidth = window.innerWidth;
@@ -207,7 +207,7 @@
         }
         initNumbers();
 
-        numbersPadding = (540 - numberTextureWidth * columnsCount) / (columnsCount - 1);
+        numbersPadding = (numbersDrawClip[2] - numberTextureWidth * columnsCount) / (columnsCount - 1);
 
         state = "idle";
 
