@@ -149,7 +149,7 @@ Game.prototype.onKeyPress = function (evt) {
             this.storage.clear();
             this.existsNumbers.length = 0;
         }
-    } else if (evt.code === "KeyR") {
+    } else if (evt.code === "KeyT") {
         this.initNumbers();
         this.addNumber("----- RESET -----");
     } else if (evt.code === "Digit0") {
@@ -168,7 +168,7 @@ Game.prototype.onKeyPress = function (evt) {
         this.currentBackground = 3;
         this.initNumbers();
         this.addNumber("----- LEVEL 3 -----");
-    } else if (evt.code === "KeyP") {
+    } else if (evt.code === "KeyL") {
         console.log(this.existsNumbers);
         var s = wordWrap(JSON.stringify(this.existsNumbers), 80);
         window.alert(s);
@@ -197,7 +197,8 @@ Game.prototype.draw = function () {
     gl.save();
     gl.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     var backgroundSprite = this.backgroundSprites[this.currentBackground];
-    backgroundSprite.draw(gl, 0, 0, viewScale);
+    var ox = (this.viewWidth - this.canvasWidth) / 2;
+    backgroundSprite.draw(gl, -336, 0, viewScale);
 
     if (this.currentBackground > 0) {
         for (var i = 0; i < this.numbersDrawCount; i++) {

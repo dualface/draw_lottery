@@ -42,14 +42,18 @@
 </body>
 <script>
     var game = new Game("canvas", {
-        VIEW_WIDTH: 2592,
+        // VIEW_WIDTH: 2592,
+        VIEW_WIDTH: 1920,
         NUMBER_SPRITE_WIDTH: 120,
         NUMBER_SPRITE_HEIGHT: 168,
         NUMBER_SPRITE_PADDING: 20,
-        NUMBERS_LENGTH: 4,
+        NUMBERS_LENGTH: 3,
         NUMBERS_DRAW_COUNT: 2,
-        NUMBERS_DRAW_POSITION: [{ x: 683, y: 600 }, { x: 1367, y: 600 }],
-        MAX_NUMBER: 9999
+        // count 4
+        // NUMBERS_DRAW_POSITION: [{ x: 347, y: 600 }, { x: 1032, y: 600 }],
+        // count 3
+        NUMBERS_DRAW_POSITION: [{ x: 417, y: 600 }, { x: 1102, y: 600 }],
+        MAX_NUMBER: 999
     });
     game.start();
 </script>
