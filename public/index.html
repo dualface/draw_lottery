@@ -41,19 +41,34 @@
     <canvas id="canvas"></canvas>
 </body>
 <script>
+    var NUMBERS_LENGTH = 3;
+    var MAX_NUMBER = 974;
+    var VIEW_WIDTH = 2592;
+    var BASE_VIEW_WIDTH = 1920;
+
+    var NUMBERS_DRAW_POSITION = {
+        3: [{ x: 417, y: 600 }, { x: 1102, y: 600 }],
+        4: [{ x: 347, y: 600 }, { x: 1032, y: 600 }],
+        5: [{ x: 207, y: 600 }, { x: 1032, y: 600 }]
+    };
+
+    var ox = (VIEW_WIDTH - BASE_VIEW_WIDTH) / 2;
+    for (var key in NUMBERS_DRAW_POSITION) {
+        var pos = NUMBERS_DRAW_POSITION[key];
+        pos[0].x += ox;
+        pos[1].x += ox;
+    }
+
     var game = new Game("canvas", {
-        // VIEW_WIDTH: 2592,
-        VIEW_WIDTH: 1920,
+        VIEW_WIDTH: 2592,
+        // VIEW_WIDTH: 1920,
         NUMBER_SPRITE_WIDTH: 120,
         NUMBER_SPRITE_HEIGHT: 168,
         NUMBER_SPRITE_PADDING: 20,
-        NUMBERS_LENGTH: 3,
+        NUMBERS_LENGTH: NUMBERS_LENGTH,
         NUMBERS_DRAW_COUNT: 2,
-        // count 4
-        // NUMBERS_DRAW_POSITION: [{ x: 347, y: 600 }, { x: 1032, y: 600 }],
-        // count 3
-        NUMBERS_DRAW_POSITION: [{ x: 417, y: 600 }, { x: 1102, y: 600 }],
-        MAX_NUMBER: 999
+        NUMBERS_DRAW_POSITION: NUMBERS_DRAW_POSITION[NUMBERS_LENGTH],
+        MAX_NUMBER: MAX_NUMBER
     });
     game.start();
 </script>

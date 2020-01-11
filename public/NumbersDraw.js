@@ -46,7 +46,7 @@ NumbersDraw.prototype.initNumbers = function () {
 };
 
 NumbersDraw.prototype.genNewNumber = function () {
-    var n = Math.round(Math.random() * this.maxNumber).toString();
+    var n = (Math.round(Math.random() * this.maxNumber) + 1).toString();
     for (var l = n.length; l < this.length; l++) {
         n = "0" + n;
     }

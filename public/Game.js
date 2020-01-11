@@ -11,6 +11,7 @@ function Game(canvasId, options) {
     this.viewScale = 1;
     this.numberSpriteWidth = options.NUMBER_SPRITE_WIDTH;
     this.numberSpriteHeight = options.NUMBER_SPRITE_HEIGHT;
+    this.numberSpritePadding = options.NUMBER_SPRITE_PADDING;
     this.numbersLength = options.NUMBERS_LENGTH;
     this.numbersDrawCount = options.NUMBERS_DRAW_COUNT;
     this.numbersDrawPosition = options.NUMBERS_DRAW_POSITION;
@@ -23,7 +24,7 @@ function Game(canvasId, options) {
     for (var i = 0; i < this.numbersDrawCount; i++) {
         this.numbersDrawInstances[i] = new NumbersDraw(i, this.numbersLength, this.maxNumber,
             this.numberSprites,
-            this.numberSpriteWidth, this.numberSpriteHeight, options.NUMBER_SPRITE_PADDING);
+            this.numberSpriteWidth, this.numberSpriteHeight, this.numberSpritePadding);
     }
 
     this.storage = window.localStorage;
@@ -41,12 +42,20 @@ function Game(canvasId, options) {
     };
 };
 
+Game.prototype.getBackgroundFilename = function (index) {
+    if (index > 0) {
+    return "bg" + index.toString() + "-" + this.numbersLength.toString() + ".jpg";
+    } else {
+    return "bg" + index.toString() + ".jpg";
+    }
+};
+
 Game.prototype.start = function () {
     // load images
     var loader = new ImagesLoader();
     loader.addFile("numbers.png");
     for (var i = 0; i < 4; i++) {
-        loader.addFile("bg" + i.toString() + ".jpg");
+        loader.addFile(this.getBackgroundFilename(i));
     }
 
     var self = this;
@@ -65,7 +74,7 @@ Game.prototype.onLoadComplete = function (loader) {
     }
 
     for (var i = 0; i < 4; i++) {
-        var filename = "bg" + i.toString() + ".jpg";
+        var filename = this.getBackgroundFilename(i);
         var image = loader.images[filename];
         this.backgroundSprites[i] = new Sprite(image, 0, 0, image.width, image.height);
     }
@@ -197,8 +206,8 @@ Game.prototype.draw = function () {
     gl.save();
     gl.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     var backgroundSprite = this.backgroundSprites[this.currentBackground];
-    var ox = (this.viewWidth - this.canvasWidth) / 2;
-    backgroundSprite.draw(gl, -336, 0, viewScale);
+    var ox = (this.viewWidth - backgroundSprite.sw) / 2;
+    backgroundSprite.draw(gl, ox, 0, viewScale);
 
     if (this.currentBackground > 0) {
         for (var i = 0; i < this.numbersDrawCount; i++) {
